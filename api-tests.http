@@ -1,0 +1,311 @@
+###############################################
+# Level-Up Gamer - API Tests
+# Instrucciones:
+# 1. Instala la extensión "REST Client" en VS Code
+# 2. Asegúrate que el servidor esté corriendo (npm start)
+# 3. Click en "Send Request" sobre cada petición
+###############################################
+
+### Variables (actualiza el token después del login)
+@baseUrl = http://localhost:5000
+@token = TU_TOKEN_AQUI
+
+###############################################
+# HEALTH CHECK
+###############################################
+
+### Health Check - Verificar que el servidor esté corriendo
+GET {{baseUrl}}/health
+
+###############################################
+# AUTENTICACIÓN
+###############################################
+
+### 1. Login como Admin
+# Copia el token de la respuesta y actualiza la variable @token arriba
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "admin@gmail.com",
+  "password": "admin123"
+}
+
+### 2. Login como Cliente
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "juan@duocuc.cl",
+  "password": "cliente123"
+}
+
+### 3. Registrar nuevo usuario
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Carlos",
+  "apellidos": "González",
+  "correo": "carlos@ejemplo.com",
+  "password": "password123",
+  "telefono": "+56987654321",
+  "direccion": "Av. Principal 456, Santiago"
+}
+
+### 4. Obtener perfil del usuario autenticado
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{token}}
+
+###############################################
+# PRODUCTOS (Público - No requiere token)
+###############################################
+
+### 5. Ver todos los productos
+GET {{baseUrl}}/api/productos
+
+### 6. Ver un producto específico (ID: 1 - PlayStation 5)
+GET {{baseUrl}}/api/productos/1
+
+### 7. Filtrar productos por categoría (ID: 2 - Videojuegos)
+GET {{baseUrl}}/api/productos?categoria_id=2
+
+### 8. Filtrar solo productos destacados
+GET {{baseUrl}}/api/productos?destacado=true
+
+###############################################
+# PRODUCTOS - ADMIN (Requiere token de admin)
+###############################################
+
+### 9. Crear nuevo producto (ADMIN)
+POST {{baseUrl}}/api/productos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Nintendo Switch Pro Controller",
+  "descripcion": "Control profesional para Nintendo Switch",
+  "precio": 59990,
+  "stock": 25,
+  "img": "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=500",
+  "categoria_id": 3,
+  "destacado": false
+}
+
+### 10. Actualizar producto (ADMIN) - Actualiza el ID según necesites
+PUT {{baseUrl}}/api/productos/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "PlayStation 5 - Edición Digital",
+  "precio": 449990,
+  "stock": 20,
+  "destacado": true
+}
+
+### 11. Eliminar producto (ADMIN) - CUIDADO: Esto eliminará el producto
+# DELETE {{baseUrl}}/api/productos/13
+# Authorization: Bearer {{token}}
+
+###############################################
+# CATEGORÍAS
+###############################################
+
+### 12. Ver todas las categorías (con sus productos)
+GET {{baseUrl}}/api/categorias
+
+### 13. Ver una categoría específica (ID: 1 - Consolas)
+GET {{baseUrl}}/api/categorias/1
+
+### 14. Crear nueva categoría (ADMIN)
+POST {{baseUrl}}/api/categorias
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Realidad Virtual",
+  "descripcion": "Dispositivos y accesorios de realidad virtual"
+}
+
+### 15. Actualizar categoría (ADMIN)
+PUT {{baseUrl}}/api/categorias/6
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "VR y AR",
+  "descripcion": "Dispositivos de realidad virtual y aumentada"
+}
+
+### 16. Eliminar categoría (ADMIN) - Solo si no tiene productos
+# DELETE {{baseUrl}}/api/categorias/6
+# Authorization: Bearer {{token}}
+
+###############################################
+# USUARIOS - ADMIN (Solo admin)
+###############################################
+
+### 17. Ver todos los usuarios (ADMIN)
+GET {{baseUrl}}/api/usuarios
+Authorization: Bearer {{token}}
+
+### 18. Ver un usuario específico (ADMIN)
+GET {{baseUrl}}/api/usuarios/2
+Authorization: Bearer {{token}}
+
+### 19. Actualizar usuario (ADMIN)
+PUT {{baseUrl}}/api/usuarios/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Juan Carlos",
+  "puntos_fidelidad": 1000
+}
+
+### 20. Intentar actualizar admin principal (debería fallar)
+PUT {{baseUrl}}/api/usuarios/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Admin Modificado"
+}
+
+### 21. Eliminar usuario (ADMIN) - No puede eliminar al admin principal
+# DELETE {{baseUrl}}/api/usuarios/3
+# Authorization: Bearer {{token}}
+
+###############################################
+# COMPRAS
+###############################################
+
+### 22. Crear una compra (requiere token de cualquier usuario autenticado)
+POST {{baseUrl}}/api/compras
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "productos": [
+    {
+      "producto_id": 1,
+      "cantidad": 1,
+      "precio_unitario": 499990
+    },
+    {
+      "producto_id": 4,
+      "cantidad": 2,
+      "precio_unitario": 39990
+    }
+  ],
+  "total": 579970,
+  "descuento_duoc": 0,
+  "descuento_puntos": 0,
+  "direccion_envio": "Av. Providencia 123, Santiago"
+}
+
+### 23. Ver mis compras (usuario autenticado)
+GET {{baseUrl}}/api/compras/mis-compras
+Authorization: Bearer {{token}}
+
+### 24. Ver todas las compras - Solo ADMIN
+GET {{baseUrl}}/api/compras
+Authorization: Bearer {{token}}
+
+### 25. Ver una compra específica
+GET {{baseUrl}}/api/compras/1
+Authorization: Bearer {{token}}
+
+###############################################
+# PRUEBAS DE DESCUENTO DUOC (20%)
+###############################################
+
+### 26. Login con usuario DUOC para probar descuento
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "juan@duocuc.cl",
+  "password": "cliente123"
+}
+
+### 27. Compra con descuento DUOC (20%)
+# Primero haz login con juan@duocuc.cl y actualiza el token
+POST {{baseUrl}}/api/compras
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "productos": [
+    {
+      "producto_id": 5,
+      "cantidad": 1,
+      "precio_unitario": 49990
+    }
+  ],
+  "total": 39992,
+  "descuento_duoc": 9998,
+  "descuento_puntos": 0,
+  "direccion_envio": "Dirección de prueba"
+}
+
+###############################################
+# VALIDACIONES Y ERRORES
+###############################################
+
+### 28. Login con credenciales incorrectas (debe fallar)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "admin@gmail.com",
+  "password": "wrongpassword"
+}
+
+### 29. Crear producto sin autenticación (debe fallar 401)
+POST {{baseUrl}}/api/productos
+Content-Type: application/json
+
+{
+  "nombre": "Producto sin auth",
+  "precio": 10000,
+  "categoria_id": 1
+}
+
+### 30. Crear producto con campos faltantes (debe fallar 400)
+POST {{baseUrl}}/api/productos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Producto incompleto"
+}
+
+### 31. Compra con stock insuficiente (debe fallar)
+POST {{baseUrl}}/api/compras
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "productos": [
+    {
+      "producto_id": 1,
+      "cantidad": 9999,
+      "precio_unitario": 499990
+    }
+  ],
+  "total": 4999900010,
+  "descuento_duoc": 0,
+  "descuento_puntos": 0,
+  "direccion_envio": "Test"
+}
+
+###############################################
+# NOTAS:
+# - Después de hacer login, copia el token y actualiza la variable @token al inicio
+# - Las peticiones comentadas con # son destructivas (DELETE)
+# - El usuario admin@gmail.com está protegido y no puede ser eliminado
+# - Al crear una compra, se actualiza automáticamente el stock y puntos de fidelidad
+# - Sistema de puntos: 1 punto por cada $1000 gastados
+###############################################
